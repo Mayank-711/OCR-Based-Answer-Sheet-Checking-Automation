@@ -7,7 +7,7 @@ from django.contrib import messages
 
 from .utils.gemma_client import GemmaClient
 from .utils.ocr_utils import extract_text_from_image, extract_text_from_pdf, parse_answer_key
-from .utils.scoring import score_omr, score_debug, score_dsa
+from .utils.scoring import score_omr, score_dsa
 from .utils.excel_generator import (
     generate_omr_excel,
     generate_debug_excel,
@@ -105,15 +105,11 @@ def _parse_omr_response(text):
 
 def debug_view(request):
     if request.method == 'POST':
-        answer_key_file = request.FILES.get('answer_key')
         sheet_files = request.FILES.getlist('sheets')
 
-        if not answer_key_file or not sheet_files:
-            messages.error(request, 'Please upload both the answer key and at least one answer sheet.')
+        if not sheet_files:
+            messages.error(request, 'Please upload at least one answer sheet.')
             return render(request, 'debug.html')
-
-        key_text = answer_key_file.read().decode('utf-8', errors='ignore')
-        answer_key = _parse_debug_answer_key(key_text)
 
         client = GemmaClient()
         results = []
@@ -124,24 +120,28 @@ def debug_view(request):
                 extracted = extract_text_from_pdf(tmp_path, client)
 
                 prompt = (
-                    "You are checking a debug competition answer sheet. "
-                    "The sheet has questions where students identify errors in buggy pseudocode "
-                    "and provide the correct output.\n"
-                    "Extract the student name (found on the first page) and for each question extract:\n"
-                    "- The error identified by the student\n"
-                    "- The correct output written by the student\n\n"
+                    "You are evaluating a debug competition answer sheet.\n\n"
+                    "The sheet contains buggy pseudocode questions. The TYPED/PRINTED text is the "
+                    "question (the buggy code). The HANDWRITTEN text is the student's answer "
+                    "(their identified error and corrected output).\n\n"
+                    "For each question:\n"
+                    "1. Read the typed buggy pseudocode (the question).\n"
+                    "2. Read the handwritten response (the student's answer).\n"
+                    "3. Determine if the student correctly identified the error (ERROR_CORRECT: yes/no).\n"
+                    "4. Determine if the student wrote the correct output (OUTPUT_CORRECT: yes/no).\n\n"
+                    "Extract the student name (found on the first page).\n\n"
                     "Return ONLY in this exact format:\n"
                     "NAME: <student name>\n"
-                    "Q1_ERROR: <identified error>\n"
-                    "Q1_OUTPUT: <correct output>\n"
-                    "Q2_ERROR: <identified error>\n"
-                    "Q2_OUTPUT: <correct output>\n"
+                    "Q1_ERROR_CORRECT: yes/no\n"
+                    "Q1_OUTPUT_CORRECT: yes/no\n"
+                    "Q2_ERROR_CORRECT: yes/no\n"
+                    "Q2_OUTPUT_CORRECT: yes/no\n"
                     "...\n\n"
                     f"Extracted text:\n{extracted}"
                 )
                 parsed = client.generate(prompt)
-                name, student_answers = _parse_debug_response(parsed)
-                score = score_debug(student_answers, answer_key)
+                name, evaluations = _parse_debug_response(parsed)
+                score = score_debug_evaluated(evaluations)
                 results.append({'name': name, 'score': score})
             finally:
                 os.unlink(tmp_path)
@@ -157,40 +157,41 @@ def debug_view(request):
     return render(request, 'debug.html')
 
 
-def _parse_debug_answer_key(text):
-    """
-    Parse debug answer key. Expected format:
-    Q1_ERROR: description of error
-    Q1_OUTPUT: expected output
-    Q2_ERROR: ...
-    Q2_OUTPUT: ...
-    """
-    lines = [l.strip() for l in text.strip().splitlines() if l.strip()]
-    key = {}
-    for line in lines:
-        if ':' not in line:
-            continue
-        label, value = line.split(':', 1)
-        label = label.strip().upper()
-        value = value.strip()
-        key[label] = value
-    return key
-
-
 def _parse_debug_response(text):
-    """Parse Gemma's debug response."""
+    """Parse Gemma's debug evaluation response into (name, evaluations dict)."""
     lines = [l.strip() for l in text.strip().splitlines() if l.strip()]
     name = "Unknown"
-    answers = {}
+    evaluations = {}
     for line in lines:
         if line.upper().startswith('NAME:'):
             name = line.split(':', 1)[1].strip()
         elif ':' in line:
             label, value = line.split(':', 1)
             label = label.strip().upper()
-            value = value.strip()
-            answers[label] = value
-    return name, answers
+            value = value.strip().lower()
+            evaluations[label] = value in ('yes', 'true', '1')
+    return name, evaluations
+
+
+def score_debug_evaluated(evaluations: dict) -> int:
+    """
+    Score debug sheet from Gemma's evaluation.
+    Correct error identification = 1 point.
+    Correct output = 2 points.
+    """
+    score = 0
+    q = 1
+    while True:
+        error_key = f"Q{q}_ERROR_CORRECT"
+        output_key = f"Q{q}_OUTPUT_CORRECT"
+        if error_key not in evaluations and output_key not in evaluations:
+            break
+        if evaluations.get(error_key, False):
+            score += 1
+        if evaluations.get(output_key, False):
+            score += 2
+        q += 1
+    return score
 
 
 # ─── PAGE 3: DSA ROUND CHECKING ──────────────────────────────────────

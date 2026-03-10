@@ -6,28 +6,17 @@
 {% block content %}
 <div class="page-header">
     <h1>Debug Sheet Checking</h1>
-    <p>Upload buggy pseudo-code answer sheets and an answer key to score error identification and correct output.</p>
+    <p>Upload buggy pseudo-code answer sheets. Typed text = questions, handwritten text = student answers. AI evaluates correctness automatically.</p>
 </div>
 
 <div class="card">
-    <h2>Upload Files</h2>
+    <h2>Upload Answer Sheets</h2>
     <form method="post" enctype="multipart/form-data" id="debugForm">
         {% csrf_token %}
 
         <div class="form-group">
-            <label for="answer_key">Answer Key (.txt)</label>
-            <p class="hint">
-                Format:<br>
-                <code>Q1_ERROR: description of the error</code><br>
-                <code>Q1_OUTPUT: expected correct output</code><br>
-                <code>Q2_ERROR: ...</code>
-            </p>
-            <input type="file" name="answer_key" id="answer_key" accept=".txt" required>
-        </div>
-
-        <div class="form-group">
             <label for="sheets">Student Answer Sheets (PDF)</label>
-            <p class="hint">Upload one or more PDF answer sheets. Student name should be on the first page. Supports 2 question paper sets.</p>
+            <p class="hint">Upload one or more PDF answer sheets. The printed/typed text is treated as the question (buggy pseudocode). The handwritten text is treated as the student's answer. Student name should be on the first page. Supports 2 question paper sets.</p>
             <input type="file" name="sheets" id="sheets" accept=".pdf" multiple required>
         </div>
 
@@ -41,6 +30,13 @@
 </div>
 
 <div class="card info-card">
+    <h3>How It Works</h3>
+    <ol>
+        <li>Upload student answer sheet PDFs.</li>
+        <li>AI reads the sheet — <strong>typed/printed text</strong> is the buggy pseudocode question.</li>
+        <li><strong>Handwritten text</strong> is the student's identified error and corrected output.</li>
+        <li>AI evaluates if the student correctly found the error and wrote the right output.</li>
+    </ol>
     <h3>Scoring Rules</h3>
     <ul>
         <li><strong>Correct error identification:</strong> 1 point</li>
