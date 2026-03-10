@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+
+{% block title %}Debug Sheet Checking — Auto Checker{% endblock %}
+{% block nav_debug %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>Debug Sheet Checking</h1>
+    <p>Upload buggy pseudo-code answer sheets and an answer key to score error identification and correct output.</p>
+</div>
+
+<div class="card">
+    <h2>Upload Files</h2>
+    <form method="post" enctype="multipart/form-data" id="debugForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="answer_key">Answer Key (.txt)</label>
+            <p class="hint">
+                Format:<br>
+                <code>Q1_ERROR: description of the error</code><br>
+                <code>Q1_OUTPUT: expected correct output</code><br>
+                <code>Q2_ERROR: ...</code>
+            </p>
+            <input type="file" name="answer_key" id="answer_key" accept=".txt" required>
+        </div>
+
+        <div class="form-group">
+            <label for="sheets">Student Answer Sheets (PDF)</label>
+            <p class="hint">Upload one or more PDF answer sheets. Student name should be on the first page. Supports 2 question paper sets.</p>
+            <input type="file" name="sheets" id="sheets" accept=".pdf" multiple required>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span class="btn-text">Check Sheets &amp; Download Excel</span>
+                <span class="btn-loading" style="display:none;">Processing...</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card info-card">
+    <h3>Scoring Rules</h3>
+    <ul>
+        <li><strong>Correct error identification:</strong> 1 point</li>
+        <li><strong>Correct output:</strong> 2 points</li>
+        <li><strong>Total per question:</strong> 3 points</li>
+    </ul>
+    <p>Output Excel: <strong>Name | Debug Score</strong></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('debugForm').addEventListener('submit', function() {
+    var btn = document.getElementById('submitBtn');
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loading').style.display = 'inline';
+    btn.disabled = true;
+});
+</script>
+{% endblock %}

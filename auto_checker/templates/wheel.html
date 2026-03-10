@@ -1,0 +1,39 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Spin the Wheel — Auto Checker{% endblock %}
+{% block nav_wheel %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>🎡 Spin the Wheel</h1>
+    <p>Fun round! Spin to determine bonus or penalty for a participant.</p>
+</div>
+
+<div class="wheel-layout">
+    <div class="card wheel-card">
+        <canvas id="wheelCanvas" width="400" height="400"></canvas>
+        <button id="spinBtn" class="btn btn-primary btn-spin">SPIN!</button>
+    </div>
+
+    <div class="card result-card">
+        <h2>Result</h2>
+        <div id="resultDisplay" class="result-display">Press SPIN to start</div>
+
+        <h3>Assign to Participant</h3>
+        <div class="form-group">
+            <input type="text" id="participantName" placeholder="Participant name" class="input-field">
+        </div>
+        <button id="assignBtn" class="btn btn-secondary" disabled>Assign Result</button>
+
+        <div id="assignmentLog" class="assignment-log">
+            <h3>Assignment Log</h3>
+            <ul id="logList"></ul>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script src="{% static 'js/wheel.js' %}"></script>
+{% endblock %}

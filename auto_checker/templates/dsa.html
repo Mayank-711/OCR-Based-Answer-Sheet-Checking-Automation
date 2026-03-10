@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block title %}DSA Round Checking — Auto Checker{% endblock %}
+{% block nav_dsa %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>DSA Round Checking</h1>
+    <p>Upload coding answer sheets (PDF). The system evaluates code quality with partial marking using AI analysis.</p>
+</div>
+
+<div class="card">
+    <h2>Upload Answer Sheets</h2>
+    <form method="post" enctype="multipart/form-data" id="dsaForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="sheets">Student Answer Sheets (PDF)</label>
+            <p class="hint">Students solve 3 coding questions in Python, Java, C++, or Pseudocode.</p>
+            <input type="file" name="sheets" id="sheets" accept=".pdf" multiple required>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span class="btn-text">Evaluate &amp; Download Excel</span>
+                <span class="btn-loading" style="display:none;">Processing...</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card info-card">
+    <h3>Scoring Breakdown</h3>
+    <table class="info-table">
+        <thead>
+            <tr><th>Question</th><th>Max Marks</th></tr>
+        </thead>
+        <tbody>
+            <tr><td>Question 1</td><td>10</td></tr>
+            <tr><td>Question 2</td><td>20</td></tr>
+            <tr><td>Question 3</td><td>30</td></tr>
+            <tr><td><strong>Total</strong></td><td><strong>60</strong></td></tr>
+        </tbody>
+    </table>
+
+    <h3>Partial Marking</h3>
+    <ul>
+        <li><strong>Variables / declarations present:</strong> 10% of marks</li>
+        <li><strong>Looping / iteration logic:</strong> 20% of marks</li>
+        <li><strong>Correct algorithm:</strong> 70% of marks</li>
+    </ul>
+    <p>Output Excel: <strong>Name | Q1 | Q2 | Q3 | Total</strong></p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('dsaForm').addEventListener('submit', function() {
+    var btn = document.getElementById('submitBtn');
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loading').style.display = 'inline';
+    btn.disabled = true;
+});
+</script>
+{% endblock %}

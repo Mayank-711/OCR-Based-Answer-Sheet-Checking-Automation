@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+
+{% block title %}OMR Checking — Auto Checker{% endblock %}
+{% block nav_omr %}active{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1>OMR Sheet Checking</h1>
+    <p>Upload OMR answer sheet images and an answer key to automatically grade them.</p>
+</div>
+
+<div class="card">
+    <h2>Upload Files</h2>
+    <form method="post" enctype="multipart/form-data" id="omrForm">
+        {% csrf_token %}
+
+        <div class="form-group">
+            <label for="answer_key">Answer Key (.txt)</label>
+            <p class="hint">Format: one answer per line — <code>1:A</code>, <code>2:C</code>, etc.</p>
+            <input type="file" name="answer_key" id="answer_key" accept=".txt" required>
+        </div>
+
+        <div class="form-group">
+            <label for="sheets">OMR Sheet Images</label>
+            <p class="hint">Upload one or more OMR sheet images (PNG, JPG, PDF).</p>
+            <input type="file" name="sheets" id="sheets" accept="image/*,.pdf" multiple required>
+        </div>
+
+        <div class="form-actions">
+            <button type="submit" class="btn btn-primary" id="submitBtn">
+                <span class="btn-text">Check Sheets &amp; Download Excel</span>
+                <span class="btn-loading" style="display:none;">Processing...</span>
+            </button>
+        </div>
+    </form>
+</div>
+
+<div class="card info-card">
+    <h3>How It Works</h3>
+    <ol>
+        <li>Upload an answer key text file with correct answers.</li>
+        <li>Upload one or more OMR answer sheet images.</li>
+        <li>The system uses AI OCR to extract student names and marked options.</li>
+        <li>Answers are compared and scored: <strong>+1</strong> for correct, <strong>0</strong> for wrong.</li>
+        <li>An Excel file with <strong>Name | Score</strong> is generated for download.</li>
+    </ol>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+document.getElementById('omrForm').addEventListener('submit', function() {
+    var btn = document.getElementById('submitBtn');
+    btn.querySelector('.btn-text').style.display = 'none';
+    btn.querySelector('.btn-loading').style.display = 'inline';
+    btn.disabled = true;
+});
+</script>
+{% endblock %}
