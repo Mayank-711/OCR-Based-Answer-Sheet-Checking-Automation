@@ -4,13 +4,12 @@
     'use strict';
 
     var segments = [
-        { label: '+5 Points',      color: '#22c55e' },
-        { label: '-5 Points',      color: '#ef4444' },
-        { label: 'Give 5 to\nsomeone', color: '#3b82f6' },
-        { label: 'Lose a\nTurn',   color: '#f59e0b' },
-        { label: 'Get a Hint',     color: '#8b5cf6' },
-        { label: 'Swap Score',     color: '#ec4899' },
-        { label: 'Bonus Round',    color: '#14b8a6' },
+        { label: '+5 Points',         color: '#22c55e' },
+        { label: '+10 Points',        color: '#16a34a' },
+        { label: '+5 to\nSomeone',    color: '#3b82f6' },
+        { label: '-5 Points',         color: '#ef4444' },
+        { label: 'Get a Hint',        color: '#8b5cf6' },
+        { label: 'Bet up\nto 10',     color: '#f59e0b' },
     ];
 
     var canvas = document.getElementById('wheelCanvas');
